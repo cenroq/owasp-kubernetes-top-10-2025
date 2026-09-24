@@ -1,0 +1,188 @@
+# K01: Insecure Workload Configurations
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deathstar
+  namespace: star-wars
+  labels:
+    app.kubernetes.io/name: deathstar
+    app.kubernetes.io/part-of: owasp-top10-demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      org: empire
+      class: deathstar
+  template:
+    metadata:
+      labels:
+        org: empire
+        class: deathstar
+    spec:
+      serviceAccountName: deathstar
+      # K09
+      automountServiceAccountToken: false
+      # K01
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: deathstar
+          image: quay.io/cilium/starwars:v2.1@sha256:833d915ec68fca3ce83668fc5dae97c455b2134d8f23ef96586f55b894cfb1e8
+          # K01
+          command: ["/starwars-docker", "--port", "8080", "--host", "0.0.0.0"]
+          ports:
+            - name: http
+              containerPort: 8080
+          # K01
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            # K03
+            - name: openbao-secrets
+              mountPath: /mnt/secrets
+              readOnly: true
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        # K03
+        - name: openbao-secrets
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: deathstar-openbao
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: deathstar
+  namespace: star-wars
+  labels:
+    app.kubernetes.io/name: deathstar
+spec:
+  # K06
+  type: ClusterIP
+  selector:
+    org: empire
+    class: deathstar
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tiefighter
+  namespace: star-wars
+  labels:
+    app.kubernetes.io/name: tiefighter
+    app.kubernetes.io/part-of: owasp-top10-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      org: empire
+      class: tiefighter
+  template:
+    metadata:
+      labels:
+        org: empire
+        class: tiefighter
+    spec:
+      serviceAccountName: tiefighter
+      # K09
+      automountServiceAccountToken: false
+      # K01
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 100
+        runAsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: client
+          image: docker.io/curlimages/curl:8.16.0@sha256:463eaf6072688fe96ac64fa623fe73e1dbe25d8ad6c34404a669ad3ce1f104b6
+          command: ["sh", "-c", "while true; do sleep 3600; done"]
+          # K01
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xwing
+  namespace: star-wars
+  labels:
+    app.kubernetes.io/name: xwing
+    app.kubernetes.io/part-of: owasp-top10-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      org: alliance
+      class: xwing
+  template:
+    metadata:
+      labels:
+        org: alliance
+        class: xwing
+    spec:
+      serviceAccountName: xwing
+      # K09
+      automountServiceAccountToken: false
+      # K01
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 100
+        runAsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: client
+          image: docker.io/curlimages/curl:8.16.0@sha256:463eaf6072688fe96ac64fa623fe73e1dbe25d8ad6c34404a669ad3ce1f104b6
+          command: ["sh", "-c", "while true; do sleep 3600; done"]
+          # K01
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi

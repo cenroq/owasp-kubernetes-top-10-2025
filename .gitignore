@@ -1,0 +1,6 @@
+# Generated at install time - contains key material, never commit.
+cluster/encryption-config.yaml
+cluster/openbao-init.json
+
+# Locally downloaded kubeapt binary.
+bin/

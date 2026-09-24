@@ -1,0 +1,18 @@
+# Namespaces
+#
+# K04: the admission bundle's opt-in label is applied by install.sh via
+# "kubeapt bundles enforce", not set here.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: star-wars
+  labels:
+    app.kubernetes.io/part-of: owasp-top10-demo
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openbao
+  labels:
+    app.kubernetes.io/part-of: owasp-top10-demo

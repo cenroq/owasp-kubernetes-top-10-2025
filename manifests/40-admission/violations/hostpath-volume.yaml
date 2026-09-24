@@ -1,0 +1,19 @@
+# K04: must be rejected - K01 node root filesystem mounted into a container
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: violation-hostpath
+  namespace: star-wars
+spec:
+  containers:
+    - name: app
+      image: docker.io/curlimages/curl:8.16.0@sha256:463eaf6072688fe96ac64fa623fe73e1dbe25d8ad6c34404a669ad3ce1f104b6
+      command: ["sleep", "60"]
+      volumeMounts:
+        - name: host
+          mountPath: /host
+  volumes:
+    - name: host
+      hostPath:
+        path: /

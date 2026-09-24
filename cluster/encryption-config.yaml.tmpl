@@ -1,0 +1,17 @@
+# K03: Secrets Management Failures
+#
+# Template. install.sh replaces __KEY__ and writes cluster/encryption-config.yaml.
+---
+apiVersion: apiserver.config.k8s.io/v1
+kind: EncryptionConfiguration
+resources:
+  - resources:
+      - secrets
+      - configmaps
+    providers:
+      # K03
+      - aescbc:
+          keys:
+            - name: key1
+              secret: __KEY__
+      - identity: {}

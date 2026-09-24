@@ -1,0 +1,30 @@
+# K09: Broken Authentication Mechanisms
+---
+apiVersion: apiserver.config.k8s.io/v1
+kind: AuthenticationConfiguration
+
+# K09
+anonymous:
+  enabled: true
+  conditions:
+    - path: /healthz
+    - path: /readyz
+    - path: /livez
+    - path: /api/v1/namespaces/kube-public/configmaps/cluster-info
+
+# K09: where an external OIDC provider maps in
+#
+# jwt:
+#   - issuer:
+#       url: https://idp.example.com
+#       audiences: [kubernetes]
+#     claimMappings:
+#       username:
+#         claim: email
+#         prefix: "oidc:"
+#       groups:
+#         claim: groups
+#         prefix: "oidc:"
+#     claimValidationRules:
+#       - claim: email_verified
+#         requiredValue: "true"
